@@ -101,6 +101,10 @@ img.qimg{display:block;width:100%;height:auto;border-radius:10px;border:1px soli
 .checks input{width:20px;height:20px}
 .foot{margin-top:36px;font-size:13px;color:var(--muted)}
 a{color:var(--accent)}
+.thbody{white-space:pre-line;line-height:1.65}
+.toc a{text-decoration:none}
+details.tpl[id]{scroll-margin-top:12px}
+h2[id]{scroll-margin-top:12px}
 .formula .katex-display{margin:0;text-align:left}
 .formula .katex-display>.katex{text-align:left}
 .formula .katex{font-size:1.12em}
@@ -144,12 +148,16 @@ a{color:var(--accent)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <script src="data.js"></script>
 <script src="images.js"></script>
+<script src="teoriya.js"></script>
 <script src="voprosy-dop.js"></script>
 <script>
 (function(){
 "use strict";
 const Q = DATA.questions, TOP = DATA.topics, TPL = DATA.templates;
 const LOADERR = [];   // ошибки в voprosy-dop.js показываем на главной, а не роняем сайт
+// Теория (teoriya.js): если файла нет, вкладка просто пустая
+const TH = (typeof THEORY !== "undefined") ? THEORY : [];
+const THSEC = {}; TH.forEach(t => t.sections.forEach(s => { s.topic = t.topic; THSEC[s.id] = s; }));
 
 /* ---------- новые вопросы из voprosy-dop.js ---------- */
 (function mergeExtra(){
@@ -169,6 +177,7 @@ const LOADERR = [];   // ошибки в voprosy-dop.js показываем н�
     q.title = q.title || ("Вопрос " + q.id);
     q.tpl = (q.tpl || []).filter(tid => TPL.some(x => x.id === tid));
     Q.push(q); top.qids.push(q.id);
+    (q.th || []).forEach(sid => { const s = THSEC[sid]; if (s && !s.qids.includes(q.id)) s.qids.push(q.id); });
     q.tpl.forEach(tid => { const t = TPL.find(x => x.id === tid); if (!t.qids.includes(q.id)) t.qids.push(q.id); });
   });
 })();
@@ -247,6 +256,21 @@ function tplBlock(t, open){
     <p class="rule tex">${esc(t.rule)}</p>
     <div class="qs">Вопросы: ${t.qids.join(", ")}</div></div></details>`;
 }
+// Текст теории: экранируем, **жирный** превращаем в <b>; формулы $...$ дорисует typeset()
+function rich(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
+function thFor(qid){ return Object.values(THSEC).filter(s => s.qids.includes(qid)); }
+function viewTheory(){
+  if (!TH.length) return `<h1>Теория</h1><p class="muted">Файл teoriya.js не найден.</p>`;
+  const toc = TH.map(t => `<a class="btn small" href="#/theory/t${t.topic}">${t.topic}. ${esc(topById[t.topic].title)}</a>`).join("");
+  return `<h1>Теория</h1>
+  <p class="muted" style="margin:0 0 10px">Конспект по тому, что встречается в вопросах: определения, формулы, пояснения и типичные ловушки. Под каждым разделом указаны вопросы, которые на него опираются.</p>
+  <div class="row toc" style="margin-bottom:6px">${toc}</div>
+  ${TH.map(t => `<h2 id="th-t${t.topic}">Тема ${t.topic}. ${esc(topById[t.topic].title)}
+      <a class="btn small" href="#/topic/${t.topic}" style="margin-left:8px;font-weight:400">К вопросам</a></h2>
+    ${t.sections.map(s => `<details class="tpl" id="th-${s.id}" open><summary class="tex">${esc(s.title)}</summary><div class="in">
+      <div class="thbody tex">${rich(s.body)}</div>
+      <div class="qs">Вопросы: ${s.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div></div></details>`).join("")}`).join("")}`;
+}
 // Рисуем формулы KaTeX; если библиотека не загрузилась (нет интернета), остаётся исходный текст
 function typeset(){
   if (!window.katex) return;
@@ -275,7 +299,7 @@ function smartIds(n){
 
 /* ---------- экраны ---------- */
 function tabs(route){
-  const items = [["#/","Главная","home"],["#/cheat","Шпаргалка","cheat"],["#/plan","План","plan"]];
+  const items = [["#/","Главная","home"],["#/theory","Теория","theory"],["#/cheat","Шпаргалка","cheat"],["#/plan","План","plan"]];
   $("#tabs").innerHTML = items.map(([h,t,k]) => `<a href="${h}" class="${route===k?"on":""}">${t}</a>`).join("") +
     `<a href="#" id="theme" title="Тема оформления">◐</a>`;
 }
@@ -335,6 +359,7 @@ function viewTopic(id){
   <div class="row" style="margin-bottom:6px">
     <button class="btn primary" data-act="learn-topic" data-t="${t.id}">Учить тему по порядку</button>
     <button class="btn" data-act="exam-topic" data-t="${t.id}">Тест по теме</button>
+    ${THSEC && TH.some(x => x.topic === t.id) ? `<a class="btn" href="#/theory/t${t.id}">Теория по теме</a>` : ""}
   </div>
   <h2>Шаблоны решений</h2>
   <p class="hint">Сначала прочитай шаблоны. Дальше вопросы решаются по ним.</p>
@@ -394,6 +419,8 @@ function viewRun(){
     if (isText){ if (q.solution) after += `<div class="solbox tex">${esc(q.solution)}</div>`; }
     else after += img("s"+q.k);
     if (q.note) after += `<div class="note tex">${esc(q.note)}</div>`;
+    const ths = thFor(q.id);
+    if (ths.length) after += `<div class="tplbox"><div class="h">Теория: ${ths.map(s => `<a href="#/theory/${s.id}">${esc(s.title)}</a>`).join(", ")}</div></div>`;
     q.tpl.forEach(tid => { const t = tplById[tid];
       after += `<div class="tplbox"><div class="h tex">Шаблон: ${esc(t.title)}</div>${t.formulas.map(fhtml).join("")}<div class="tex">${esc(t.rule)}</div></div>`; });
   }
@@ -492,12 +519,17 @@ function render(){
   if (h.startsWith("#/topic/")){ route = "topic"; html = viewTopic(+h.split("/")[2]); }
   else if (h === "#/run"){ route = "run"; html = viewRun(); }
   else if (h === "#/result"){ route = "result"; html = LASTRES ? viewResult(LASTRES) : viewHome(); }
+  else if (h.startsWith("#/theory")){ route = "theory"; html = viewTheory(); }
   else if (h === "#/cheat"){ route = "cheat"; html = viewCheat(); }
   else if (h === "#/plan"){ route = "plan"; html = viewPlan(); }
   else html = viewHome();
   tabs(route);
   $("#app").innerHTML = html;
   typeset();
+  if (route === "theory"){   // #/theory/<раздел или tN>: прокрутить к нужному месту
+    const el = document.getElementById("th-" + (h.split("/")[2] || ""));
+    if (el){ if (el.tagName === "DETAILS") el.open = true; el.scrollIntoView(); return; }
+  }
   window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", render);
@@ -509,6 +541,7 @@ document.addEventListener("click", e => {
     const cur = r.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     r.setAttribute("data-theme", cur === "dark" ? "light" : "dark"); return; }
   const a = e.target.closest("[data-act]"); if (!a || a.disabled) return;
+  if (a.tagName === "A") e.preventDefault();
   const act = a.dataset.act;
   if (act === "smart") startRun(smartIds(10), "learn", "Умное повторение");
   else if (act === "weak"){ const ids = ORDER.filter(id => status(id)==="weak"); if (ids.length) startRun(ids, "learn", "Ошибки"); }
