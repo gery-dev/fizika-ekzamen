@@ -111,6 +111,7 @@ h2[id]{scroll-margin-top:12px}
 .formula.ftext{font-family:inherit;font-size:16px}
 .tex .katex{font-size:1.08em}
 .stem{font-size:17px;white-space:pre-line;margin:4px 0 8px}
+img.fig{display:block;max-width:100%;height:auto;margin:4px 0 10px;border-radius:8px;border:1px solid var(--line);background:#fff}
 .solbox{white-space:pre-line;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--card)}
 .opts.text{flex-direction:column}
 .opt.optrow{display:flex;gap:12px;align-items:flex-start;justify-content:flex-start;text-align:left;width:100%;height:auto;min-height:48px;padding:10px 14px;font-size:16px;font-weight:400}
@@ -446,7 +447,7 @@ function viewRun(){
   <div class="bar" style="margin-bottom:12px"><i class="d" style="width:${pct(R.i + (checked?1:0), R.ids.length)}%"></i></div>
   <div class="card">
     <div class="qtitle">${esc(q.title)}</div>
-    ${isText ? `<div class="stem tex">${esc(q.stem)}</div>` : img("q"+q.k)}
+    ${isText ? `${q.img ? `<img class="fig" alt="" src="${esc(q.img)}">` : ""}<div class="stem tex">${esc(q.stem)}</div>` : img("q"+q.k)}
     ${isText ? (need>1 ? `<p class="hint"><b>Нужно выбрать ответов: ${need}.</b></p>` : "")
              : `<p class="hint">Нажми на картинку, чтобы изменить масштаб (на телефоне её можно листать вбок). Варианты считаются сверху вниз${q.num ? " (подписаны цифрами 1, 2, 3…)" : ""}.${need>1 ? ` <b>Нужно выбрать ответов: ${need}.</b>` : ""}</p>`}
     <div class="opts${isText ? " text" : ""}">${optsHtml}</div>
