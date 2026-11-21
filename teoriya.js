@@ -74,11 +74,17 @@ const THEORY = [
 Пример. $\vec F = 3\vec i - 5\vec j$, частица переместилась из точки $(2;\,-1)$ в точку $(5;\,-1)$: $\Delta x = 3$, $\Delta y = 0$, значит $A = 3\cdot 3 = 9$ Дж (проекция $F_y$ работы не даёт).
 
 **Ловушка:** перемещение считаем как «конец минус начало», оно бывает отрицательным: при переходе $x: 2 \to 1$ получаем $\Delta x = -1$ и $A = 3\cdot(-1) = -3$ Дж.` },
-  { id: "e-theorem", title: "Кинетическая энергия и теорема об энергии",
+  { id: "e-theorem", title: "Кинетическая и потенциальная энергия, теорема об энергии",
     qids: [36],
     body: String.raw`**Кинетическая энергия** $E_k = \dfrac{mv^2}{2}$. **Теорема о кинетической энергии:** работа **всех** сил, действующих на тело, равна приращению его кинетической энергии: $$A_{\text{всех сил}} = E_{k2} - E_{k1}$$ Теорема связывает работу именно с кинетической энергией, а не с механической или потенциальной.
 
-Кинетическая энергия зависит **и от массы, и от скорости**, и **всегда неотрицательна** ($m > 0$, $v^2 \ge 0$). Потенциальная энергия, в отличие от неё, может быть любого знака.` },
+Кинетическая энергия зависит **и от массы, и от скорости**, и **всегда неотрицательна** ($m > 0$, $v^2 \ge 0$). Потенциальная энергия, в отличие от неё, может быть любого знака.
+
+**Потенциальная энергия** зависит только от положения тела (не от скорости). Основные формулы:
+• поле тяжести: $E_p = mgh$, где $h$ — высота над выбранным нулевым уровнем;
+• упругая пружина: $E_p = \dfrac{kx^2}{2}$, где $x$ — деформация;
+• тяготение: $E_p = -G\dfrac{Mm}{r}$ (ноль на бесконечности).
+Работа консервативных сил равна убыли потенциальной энергии: $A = -\Delta E_p = E_{p1} - E_{p2}$, а сила находится как $F_x = -\dfrac{\partial E_p}{\partial x}$.` },
   { id: "e-conserv", title: "Консервативные силы и потенциальная энергия",
     qids: [21, 39, 40, 107, 133],
     body: String.raw`Сила **консервативна**, если её работа не зависит от формы пути, а только от начального и конечного положения. Тогда работа по **замкнутому** пути равна нулю: $\oint\vec F\cdot d\vec r = 0$.
@@ -317,3 +323,133 @@ const THEORY = [
     body: String.raw`Интервал между событиями инвариантен относительно преобразований Лоренца: $$\Delta S = \sqrt{(c\,\Delta t)^2 - (\Delta x^2 + \Delta y^2 + \Delta z^2)}$$ Выражение под корнем — квадрат интервала $\Delta S^2$. Время входит с плюсом (умножено на $c$), пространственная часть — с минусом.` },
 ]},
 ];
+
+// ОСНОВНЫЕ ФОРМУЛЫ ПО ТЕМАМ (блок «Основные формулы» в шпаргалке и на странице темы).
+// Ключ — номер темы; элемент — [подпись, формула в LaTeX]. Подпись может содержать $...$.
+const FORMULAS = {
+1: [
+  ["Скорость", String.raw`\vec v = \frac{d\vec r}{dt},\qquad v = \frac{dx}{dt}`],
+  ["Ускорение", String.raw`\vec a = \frac{d\vec v}{dt},\qquad a = \frac{d^2x}{dt^2}`],
+  ["Равномерное движение", String.raw`x = x_0 + vt`],
+  ["Равнопеременное движение", String.raw`v = v_0 + at,\qquad x = x_0 + v_0t + \frac{at^2}{2}`],
+  ["Без времени", String.raw`v^2 - v_0^2 = 2a\,(x - x_0)`],
+  ["Свободное падение ($g \approx 9{,}8$ м/с²)", String.raw`v = gt,\qquad h = \frac{gt^2}{2}`],
+  ["Угловая скорость и период", String.raw`\omega = \frac{d\varphi}{dt} = \frac{2\pi}{T} = 2\pi\nu`],
+  ["Угловое ускорение", String.raw`\varepsilon = \frac{d\omega}{dt}`],
+  ["Связь линейных и угловых величин", String.raw`v = \omega R,\qquad a_\tau = \varepsilon R`],
+  ["Нормальное ускорение", String.raw`a_n = \frac{v^2}{R} = \omega^2R = v\omega`],
+  ["Полное ускорение", String.raw`a = \sqrt{a_\tau^2 + a_n^2}`],
+  ["Равнопеременное вращение", String.raw`\omega = \omega_0 + \varepsilon t,\qquad \varphi = \varphi_0 + \omega_0t + \frac{\varepsilon t^2}{2}`],
+  ["Сложение скоростей (Галилей)", String.raw`\vec v = \vec v' + \vec V`],
+],
+2: [
+  ["Второй закон Ньютона", String.raw`\sum\vec F = m\vec a = \frac{d\vec p}{dt}`],
+  ["Третий закон Ньютона", String.raw`\vec F_{12} = -\vec F_{21}`],
+  ["Сила тяжести", String.raw`F = mg`],
+  ["Сила упругости (закон Гука)", String.raw`F = -kx`],
+  ["Сила трения скольжения", String.raw`F_{\text{тр}} = \mu N`],
+  ["Всемирное тяготение", String.raw`F = G\,\frac{m_1m_2}{r^2},\qquad G = 6{,}67\cdot 10^{-11}\ \text{Н·м}^2/\text{кг}^2`],
+  ["Центростремительная сила", String.raw`F = m\,\frac{v^2}{R} = m\omega^2R`],
+  ["Вес тела", String.raw`P = m(g - a)\ \text{(ускорение вниз)},\qquad P = m(g + a)\ \text{(ускорение вверх)}`],
+],
+3: [
+  ["Работа постоянной силы", String.raw`A = \vec F\cdot\vec s = Fs\cos\alpha = F_x\Delta x + F_y\Delta y`],
+  ["Работа переменной силы", String.raw`A = \int \vec F\cdot d\vec r`],
+  ["Мощность", String.raw`N = \frac{A}{t} = \vec F\cdot\vec v`],
+  ["Кинетическая энергия", String.raw`E_k = \frac{mv^2}{2} = \frac{p^2}{2m}`],
+  ["Потенциальная энергия в поле тяжести", String.raw`E_p = mgh`],
+  ["Потенциальная энергия пружины", String.raw`E_p = \frac{kx^2}{2}`],
+  ["Потенциальная энергия тяготения", String.raw`E_p = -G\,\frac{Mm}{r}`],
+  ["Теорема о кинетической энергии", String.raw`A_{\text{всех сил}} = E_{k2} - E_{k1}`],
+  ["Работа консервативных сил", String.raw`A = -\Delta E_p = E_{p1} - E_{p2}`],
+  ["Закон сохранения энергии", String.raw`E = E_k + E_p = \text{const}\quad (\text{только консервативные силы})`],
+  ["Сила через потенциальную энергию", String.raw`F_x = -\frac{\partial E_p}{\partial x},\qquad F_y = -\frac{\partial E_p}{\partial y}`],
+],
+4: [
+  ["Импульс", String.raw`\vec p = m\vec v,\qquad \vec P = \sum m_i\vec v_i`],
+  ["Закон изменения импульса", String.raw`\frac{d\vec P}{dt} = \vec F_{\text{внеш}},\qquad \vec F\,dt = d\vec p`],
+  ["Закон сохранения импульса", String.raw`\vec F_{\text{внеш}} = 0 \;\Rightarrow\; \vec P = \text{const}`],
+  ["Центр масс", String.raw`\vec r_c = \frac{\sum m_i\vec r_i}{\sum m_i},\qquad \vec P = M\vec v_c`],
+  ["Движение центра масс", String.raw`M\vec a_c = \vec F_{\text{внеш}}`],
+  ["Абсолютно неупругий удар", String.raw`m_1\vec v_1 + m_2\vec v_2 = (m_1 + m_2)\vec v'`],
+  ["Потеря энергии при неупругом ударе", String.raw`\Delta E = \frac{m_1m_2}{2(m_1 + m_2)}(v_1 - v_2)^2`],
+  ["Абсолютно упругий удар (по одной прямой)", String.raw`v_1' = \frac{(m_1 - m_2)v_1 + 2m_2v_2}{m_1 + m_2},\quad v_2' = \frac{(m_2 - m_1)v_2 + 2m_1v_1}{m_1 + m_2}`],
+],
+5: [
+  ["Момент инерции", String.raw`I = \sum m_ir_i^2`],
+  ["Обруч, тонкостенный цилиндр", String.raw`I = mR^2`],
+  ["Сплошной диск, цилиндр", String.raw`I = \frac{mR^2}{2}`],
+  ["Сплошной шар", String.raw`I = \frac{2}{5}\,mR^2`],
+  ["Стержень длины $l$: ось через центр / через конец", String.raw`I = \frac{ml^2}{12}\quad /\quad I = \frac{ml^2}{3}`],
+  ["Теорема Штейнера", String.raw`I = I_0 + md^2`],
+  ["Момент силы", String.raw`\vec M = [\vec r\times\vec F],\qquad M = Fd`],
+  ["Основное уравнение вращения", String.raw`\vec M = I\vec\varepsilon = \frac{d\vec L}{dt}`],
+  ["Момент импульса точки", String.raw`\vec L = [\vec r\times\vec p] = m[\vec r\times\vec v],\qquad L = mvd`],
+  ["Момент импульса твёрдого тела на оси", String.raw`\vec L = I\vec\omega`],
+  ["Закон сохранения момента импульса", String.raw`\vec M_{\text{внеш}} = 0 \;\Rightarrow\; \vec L = \text{const}`],
+  ["Кинетическая энергия вращения", String.raw`E_{\text{вр}} = \frac{I\omega^2}{2}`],
+  ["Кинетическая энергия катящегося тела", String.raw`E_k = \frac{mv^2}{2} + \frac{I\omega^2}{2}`],
+  ["Работа и мощность при вращении", String.raw`A = \int M\,d\varphi,\qquad N = M\omega`],
+],
+6: [
+  ["Закон колебаний", String.raw`x = A\cos(\omega t + \varphi)`],
+  ["Уравнение гармонических колебаний", String.raw`\ddot x + \omega^2x = 0`],
+  ["Период, частота, циклическая частота", String.raw`T = \frac{2\pi}{\omega} = \frac{1}{\nu},\qquad \omega = 2\pi\nu`],
+  ["Скорость и ускорение", String.raw`v = -A\omega\sin(\omega t + \varphi),\qquad a = -A\omega^2\cos(\omega t + \varphi) = -\omega^2x`],
+  ["Максимальные значения", String.raw`v_{\max} = A\omega,\qquad a_{\max} = A\omega^2,\qquad F_{\max} = kA`],
+  ["Пружинный маятник", String.raw`\omega = \sqrt{\frac{k}{m}},\qquad T = 2\pi\sqrt{\frac{m}{k}}`],
+  ["Математический маятник", String.raw`T = 2\pi\sqrt{\frac{l}{g}}`],
+  ["Кинетическая и потенциальная энергия", String.raw`E_k = \frac{mv^2}{2},\qquad E_p = \frac{kx^2}{2},\qquad k = m\omega^2`],
+  ["Полная энергия", String.raw`E = \frac{kA^2}{2} = \frac{m\omega^2A^2}{2} = \text{const}`],
+],
+7: [
+  ["Уравнение затухающих колебаний", String.raw`\ddot x + 2\beta\dot x + \omega_0^2x = 0`],
+  ["Закон затухающих колебаний", String.raw`x = A_0e^{-\beta t}\cos(\omega t + \varphi)`],
+  ["Амплитуда и время релаксации", String.raw`A(t) = A_0e^{-\beta t},\qquad \tau = \frac{1}{\beta}`],
+  ["Частота затухающих колебаний", String.raw`\omega = \sqrt{\omega_0^2 - \beta^2}`],
+  ["Логарифмический декремент", String.raw`\delta = \beta T = \ln\frac{A(t)}{A(t + T)}`],
+  ["Уравнение вынужденных колебаний", String.raw`\ddot x + 2\beta\dot x + \omega_0^2x = f_0\cos\Omega t`],
+  ["Амплитуда вынужденных колебаний", String.raw`A = \frac{f_0}{\sqrt{(\omega_0^2 - \Omega^2)^2 + 4\beta^2\Omega^2}}`],
+  ["Резонансная частота", String.raw`\omega_{\text{рез}} = \sqrt{\omega_0^2 - 2\beta^2}`],
+],
+8: [
+  ["Амплитуда суммы (одно направление)", String.raw`A^2 = A_1^2 + A_2^2 + 2A_1A_2\cos\Delta\varphi`],
+  ["Начальная фаза суммы", String.raw`\tan\varphi = \frac{A_1\sin\varphi_1 + A_2\sin\varphi_2}{A_1\cos\varphi_1 + A_2\cos\varphi_2}`],
+  ["Равные амплитуды", String.raw`A_{\text{рез}} = 2A\left|\cos\frac{\Delta\varphi}{2}\right|`],
+  ["Частота биений", String.raw`\nu_{\text{б}} = |\nu_1 - \nu_2|`],
+  [String.raw`Перпендикулярные колебания, $\Delta\varphi = 0$ или $\pi$`, String.raw`y = \pm\frac{A_2}{A_1}\,x`],
+  [String.raw`Перпендикулярные колебания, $\Delta\varphi = \pm\pi/2$`, String.raw`\frac{x^2}{A_1^2} + \frac{y^2}{A_2^2} = 1`],
+],
+9: [
+  ["Бегущая волна", String.raw`\xi(x,t) = A\cos(\omega t - kx + \varphi)`],
+  ["Волновое число", String.raw`k = \frac{2\pi}{\lambda}`],
+  ["Скорость волны", String.raw`v = \frac{\lambda}{T} = \lambda\nu = \frac{\omega}{k}`],
+  ["Разность фаз двух точек", String.raw`\Delta\varphi = \frac{2\pi\Delta x}{\lambda} = k\Delta x`],
+  ["Скорость и ускорение частиц среды", String.raw`v_{\max} = A\omega,\qquad a_{\max} = A\omega^2`],
+  ["Стоячая волна", String.raw`\xi = 2A\cos kx\,\cos\omega t`],
+  ["Пучности и узлы", String.raw`x_{\text{пуч}} = \frac{n\lambda}{2},\qquad x_{\text{узл}} = \frac{(2n + 1)\lambda}{4}`],
+  ["Сферическая волна", String.raw`A \sim \frac{1}{r},\qquad I \sim \frac{1}{r^2}`],
+  ["Затухающая волна", String.raw`\xi = A_0e^{-\alpha r}\cos(\omega t - kr)`],
+  ["Интенсивность волны", String.raw`I \sim A^2,\qquad I = \frac{1}{2}\,\rho\, v\,\omega^2A^2`],
+],
+10: [
+  ["Источник движется, приёмник неподвижен", String.raw`\nu = \nu_0\,\frac{v}{v \mp v_{\text{ист}}}\quad (\text{«−» сближение, «+» удаление})`],
+  ["Приёмник движется, источник неподвижен", String.raw`\nu = \nu_0\,\frac{v \pm v_{\text{пр}}}{v}\quad (\text{«+» сближение, «−» удаление})`],
+  ["Общий случай", String.raw`\nu = \nu_0\,\frac{v \pm v_{\text{пр}}}{v \mp v_{\text{ист}}}`],
+  ["Длина волны при движении источника", String.raw`\lambda' = (v \mp v_{\text{ист}})\,T_0`],
+  ["Качественно", String.raw`\text{сближение: } \nu\uparrow,\ \lambda\downarrow;\qquad \text{удаление: } \nu\downarrow,\ \lambda\uparrow`],
+],
+11: [
+  ["Преобразования Галилея", String.raw`x' = x - Vt,\quad t' = t,\quad v' = v - V,\quad a' = a`],
+  ["Лоренц-фактор", String.raw`\beta = \frac{v}{c},\qquad \gamma = \frac{1}{\sqrt{1 - \beta^2}}`],
+  ["Преобразования Лоренца", String.raw`x' = \frac{x - Vt}{\sqrt{1 - V^2/c^2}},\qquad t' = \frac{t - Vx/c^2}{\sqrt{1 - V^2/c^2}}`],
+  ["Сокращение длины", String.raw`l = l_0\sqrt{1 - \beta^2}`],
+  ["Замедление времени", String.raw`\Delta t = \frac{\Delta t_0}{\sqrt{1 - \beta^2}} = \gamma\,\Delta t_0`],
+  ["Сложение скоростей", String.raw`u' = \frac{u - V}{1 - uV/c^2},\qquad \text{навстречу: } \frac{u + v}{1 + uv/c^2}`],
+  ["Масса и импульс", String.raw`m = \gamma m_0,\qquad p = \gamma m_0v`],
+  ["Энергия", String.raw`E = mc^2 = \gamma m_0c^2,\qquad E_0 = m_0c^2`],
+  ["Кинетическая энергия", String.raw`E_k = E - E_0 = (\gamma - 1)\,m_0c^2`],
+  ["Связь энергии и импульса", String.raw`E^2 = (pc)^2 + (m_0c^2)^2`],
+  ["Интервал между событиями", String.raw`\Delta S = \sqrt{(c\,\Delta t)^2 - (\Delta x^2 + \Delta y^2 + \Delta z^2)}`],
+],
+};

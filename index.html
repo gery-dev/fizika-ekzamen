@@ -102,6 +102,11 @@ img.qimg{display:block;width:100%;height:auto;border-radius:10px;border:1px soli
 .checks input{width:20px;height:20px}
 .foot{margin-top:36px;font-size:13px;color:var(--muted)}
 a{color:var(--accent)}
+.small-link{font-size:13px;font-weight:400;margin-left:6px}
+.fgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.fitem .cap{font-size:13px;color:var(--muted);margin-bottom:1px}
+.fitem .formula{margin:0}
+.fblock{break-inside:auto}
 .thbody{white-space:pre-line;line-height:1.65}
 .toc a{text-decoration:none}
 details.tpl[id]{scroll-margin-top:12px}
@@ -254,10 +259,10 @@ function fhtml(f){
                              : `<div class="formula" data-tex="${esc(f)}">${esc(f)}</div>`;
 }
 function tplBlock(t, open){
-  return `<details class="tpl" ${open?"open":""}><summary class="tex">${esc(t.title)}</summary><div class="in">
+  return `<details class="tpl" id="ch-${t.id}" ${open?"open":""}><summary class="tex">${esc(t.title)}</summary><div class="in">
     ${t.formulas.map(fhtml).join("")}
     <p class="rule tex">${esc(t.rule)}</p>
-    <div class="qs">Вопросы: ${t.qids.join(", ")}</div></div></details>`;
+    <div class="qs">Вопросы: ${t.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div></div></details>`;
 }
 // Текст теории: экранируем, **жирный** превращаем в <b>; формулы $...$ дорисует typeset()
 function rich(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
@@ -270,9 +275,18 @@ function viewTheory(){
   <div class="row toc" style="margin-bottom:6px">${toc}</div>
   ${TH.map(t => `<h2 id="th-t${t.topic}">Тема ${t.topic}. ${esc(topById[t.topic].title)}
       <a class="btn small" href="#/topic/${t.topic}" style="margin-left:8px;font-weight:400">К вопросам</a></h2>
+    ${formulasBlock(t.topic)}
     ${t.sections.map(s => `<details class="tpl" id="th-${s.id}" open><summary class="tex">${esc(s.title)}</summary><div class="in">
       <div class="thbody tex">${rich(s.body)}</div>
       <div class="qs">Вопросы: ${s.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div></div></details>`).join("")}`).join("")}`;
+}
+// Блок «Основные формулы» темы (FORMULAS из teoriya.js)
+const FM = (typeof FORMULAS !== "undefined") ? FORMULAS : {};
+function formulasBlock(tid){
+  const f = FM[tid]; if (!f || !f.length) return "";
+  return `<details class="tpl fblock" id="ch-f${tid}" open><summary>Основные формулы</summary><div class="in"><div class="fgrid">
+    ${f.map(([cap, tex]) => `<div class="fitem"><div class="cap tex">${esc(cap)}</div><div class="formula" data-tex="${esc(tex)}">${esc(tex)}</div></div>`).join("")}
+  </div></div></details>`;
 }
 // Рисуем формулы KaTeX; если библиотека не загрузилась (нет интернета), остаётся исходный текст
 function typeset(){
@@ -365,6 +379,7 @@ function viewTopic(id){
     <button class="btn" data-act="exam-topic" data-t="${t.id}">Тест по теме</button>
     ${THSEC && TH.some(x => x.topic === t.id) ? `<a class="btn" href="#/theory/t${t.id}">Теория по теме</a>` : ""}
   </div>
+  ${formulasBlock(t.id) ? `<h2>Основные формулы</h2>${formulasBlock(t.id)}` : ""}
   <h2>Шаблоны решений</h2>
   <p class="hint">Сначала прочитай шаблоны. Дальше вопросы решаются по ним.</p>
   ${tpls.map(x => tplBlock(x, true)).join("")}
@@ -377,7 +392,7 @@ function viewCheat(){
   return `<h1>Шпаргалка</h1>
   <p class="muted noprint" style="margin:0 0 10px">Все шаблоны по темам. Кнопка печати разворачивает все блоки.</p>
   <div class="noprint" style="margin-bottom:8px"><button class="btn small" data-act="print">Печать / PDF</button></div>
-  ${TOP.map(t => `<h2>Тема ${t.id}. ${esc(t.title)}</h2>` + TPL.filter(x=>x.topic===t.id).map(x => tplBlock(x,true)).join("")).join("")}`;
+  ${TOP.map(t => `<h2>Тема ${t.id}. ${esc(t.title)}</h2>` + formulasBlock(t.id) + (FM[t.id] ? `<h3 style="margin:14px 0 4px">Приёмы решения вопросов</h3>` : "") + TPL.filter(x=>x.topic===t.id).map(x => tplBlock(x,true)).join("")).join("")}`;
 }
 const PLAN = [
   ["fri","Пятница","Темы 1–5, 45 вопросов",[[1,"Кинематика"],[2,"Динамика и силы"],[3,"Работа и энергия"],[4,"Импульс и удары"],[5,"Вращение и момент импульса"]],
@@ -425,8 +440,9 @@ function viewRun(){
     if (q.note) after += `<div class="note tex">${esc(q.note)}</div>`;
     const ths = thFor(q.id);
     if (ths.length) after += `<div class="tplbox"><div class="h">Теория: ${ths.map(s => `<a href="#/theory/${s.id}">${esc(s.title)}</a>`).join(", ")}</div></div>`;
+    if (FM[q.topic]) after += `<div class="tplbox"><div class="h">Шпаргалка: <a href="#/cheat/f${q.topic}">основные формулы темы ${q.topic}</a></div></div>`;
     q.tpl.forEach(tid => { const t = tplById[tid];
-      after += `<div class="tplbox"><div class="h tex">Шаблон: ${esc(t.title)}</div>${t.formulas.map(fhtml).join("")}<div class="tex">${esc(t.rule)}</div></div>`; });
+      after += `<div class="tplbox"><div class="h"><span class="tex">Шаблон: ${esc(t.title)}</span> <a class="small-link" href="#/cheat/${t.id}">в шпаргалке →</a></div>${t.formulas.map(fhtml).join("")}<div class="tex">${esc(t.rule)}</div></div>`; });
   }
   const last = R.i === R.ids.length-1;
   let btns = "";
@@ -524,14 +540,14 @@ function render(){
   else if (h === "#/run"){ route = "run"; html = viewRun(); }
   else if (h === "#/result"){ route = "result"; html = LASTRES ? viewResult(LASTRES) : viewHome(); }
   else if (h.startsWith("#/theory")){ route = "theory"; html = viewTheory(); }
-  else if (h === "#/cheat"){ route = "cheat"; html = viewCheat(); }
+  else if (h.startsWith("#/cheat")){ route = "cheat"; html = viewCheat(); }
   else if (h === "#/plan"){ route = "plan"; html = viewPlan(); }
   else html = viewHome();
   tabs(route);
   $("#app").innerHTML = html;
   typeset();
-  if (route === "theory"){   // #/theory/<раздел или tN>: прокрутить к нужному месту
-    const el = document.getElementById("th-" + (h.split("/")[2] || ""));
+  if (route === "theory" || route === "cheat"){   // #/theory/<раздел или tN>, #/cheat/<шаблон или fN>: прокрутить к нужному месту
+    const el = document.getElementById((route === "theory" ? "th-" : "ch-") + (h.split("/")[2] || ""));
     if (el){ if (el.tagName === "DETAILS") el.open = true; el.scrollIntoView(); return; }
   }
   window.scrollTo(0,0);
