@@ -141,14 +141,13 @@ img.fig{display:block;max-width:100%;height:auto;margin:4px 0 10px;border-radius
     <nav class="tabs" id="tabs"></nav>
   </header>
   <main id="app"></main>
-  <div class="foot noprint">Прогресс хранится в браузере этого устройства. Картинки условий и решений взяты из файла «Вопросы с подробными решениями».</div>
+  <div class="foot noprint">Прогресс хранится в браузере этого устройства. Условия вопросов взяты из файла «Вопросы с подробными решениями», решения и формулы набраны заново.</div>
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <script src="data.js"></script>
-<script src="images.js"></script>
 <script src="teoriya.js"></script>
 <script src="voprosy-dop.js"></script>
 <script>
@@ -159,6 +158,8 @@ const LOADERR = [];   // ошибки в voprosy-dop.js показываем н�
 // Теория (teoriya.js): если файла нет, вкладка просто пустая
 const TH = (typeof THEORY !== "undefined") ? THEORY : [];
 const THSEC = {}; TH.forEach(t => t.sections.forEach(s => { s.topic = t.topic; THSEC[s.id] = s; }));
+// Вопросы из data.js: приводим к общему виду (stem, options, answer)
+Q.forEach(q => { q.n = q.options.length; q.ans = q.answer; q.num = false; q.tpl = q.tpl || []; });
 
 /* ---------- новые вопросы из voprosy-dop.js ---------- */
 (function mergeExtra(){
