@@ -105,7 +105,11 @@ a{color:var(--accent)}
 .small-link{font-size:13px;font-weight:400;margin-left:6px}
 .fgrid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 .fitem .cap{font-size:13px;color:var(--muted);margin-bottom:1px}
-.fitem .formula{margin:0}
+.fitem .formula{margin:0 0 4px}
+.katex-display{overflow-x:auto;overflow-y:hidden;max-width:100%}
+.formula{max-width:100%}
+.fitem .formula:last-child{margin-bottom:0}
+.fitem.wide{grid-column:1/-1}
 .fblock{break-inside:auto}
 .thbody{white-space:pre-line;line-height:1.65}
 .toc a{text-decoration:none}
@@ -123,6 +127,8 @@ img.fig{display:block;max-width:100%;height:auto;margin:4px 0 10px;border-radius
 .opt.optrow{display:flex;gap:12px;align-items:flex-start;justify-content:flex-start;text-align:left;width:100%;height:auto;min-height:48px;padding:10px 14px;font-size:16px;font-weight:400}
 .optrow b{min-width:22px;font-weight:700}
 @media (max-width:600px){
+  .formula .katex,.tex .katex{font-size:1em}
+  .formula{padding:5px 8px}
   .imgbox:not(.zoomed) img.qimg{width:165%;max-width:none}
   .imgbox.zoomed img.qimg{width:100%}
 }
@@ -245,7 +251,11 @@ function counts(ids){
 
 /* ---------- утилиты ---------- */
 const $ = s => document.querySelector(s);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Отдельные формулы $$...$$ с \qquad делим на несколько строк, чтобы они помещались на узком экране
+function splitDisplay(s){
+  return s.indexOf("$$") < 0 ? s : s.replace(/\$\$([\s\S]+?)\$\$/g, (m, inner) => splitTex(inner).map(p => "$$" + p + "$$").join(" "));
+}
+const esc = s => splitDisplay(String(s)).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function shuffle(a){ a = a.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function lab(q,i){ return q.num ? String(i+1) : LET[i]; }
 function pct(a,b){ return b ? Math.round(100*a/b) : 0; }
@@ -254,9 +264,14 @@ function bar(c, total){
   return `<div class="bar" aria-hidden="true"><i class="d" style="width:${pct(c.done,total)}%"></i><i class="l" style="width:${pct(c.learning,total)}%"></i><i class="w" style="width:${pct(c.weak,total)}%"></i></div>`;
 }
 // Формула шаблона: LaTeX; строка с "~" в начале — обычный текст с формулами в $...$
+// Формулы, склеенные через \qquad, показываем отдельными строками: так они помещаются на узком экране
+function splitTex(tex){
+  const parts = tex.split(/\\qquad(?![a-zA-Z])/).map(p => p.trim().replace(/[,;]\s*$/, "").trim()).filter(Boolean);
+  return parts.length ? parts : [tex];
+}
 function fhtml(f){
-  return f.charAt(0) === "~" ? `<div class="formula ftext tex">${esc(f.slice(1))}</div>`
-                             : `<div class="formula" data-tex="${esc(f)}">${esc(f)}</div>`;
+  if (f.charAt(0) === "~") return `<div class="formula ftext tex">${esc(f.slice(1))}</div>`;
+  return splitTex(f).map(p => `<div class="formula" data-tex="${esc(p)}">${esc(p)}</div>`).join("");
 }
 function tplBlock(t, open){
   return `<details class="tpl" id="ch-${t.id}" ${open?"open":""}><summary class="tex">${esc(t.title)}</summary><div class="in">
@@ -280,12 +295,21 @@ function viewTheory(){
       <div class="thbody tex">${rich(s.body)}</div>
       <div class="qs">Вопросы: ${s.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div></div></details>`).join("")}`).join("")}`;
 }
+// Длинная формула, которая не помещается в колонку, занимает всю ширину блока
+function markWide(){
+  document.querySelectorAll(".fitem").forEach(it => {
+    const fs = [...it.querySelectorAll(".formula")]; if (!fs.length) return;
+    it.classList.remove("wide");
+    if (fs.some(f => f.scrollWidth > f.clientWidth + 2)) it.classList.add("wide");
+  });
+}
+window.addEventListener("resize", markWide);
 // Блок «Основные формулы» темы (FORMULAS из teoriya.js)
 const FM = (typeof FORMULAS !== "undefined") ? FORMULAS : {};
 function formulasBlock(tid){
   const f = FM[tid]; if (!f || !f.length) return "";
   return `<details class="tpl fblock" id="ch-f${tid}" open><summary>Основные формулы</summary><div class="in"><div class="fgrid">
-    ${f.map(([cap, tex]) => `<div class="fitem"><div class="cap tex">${esc(cap)}</div><div class="formula" data-tex="${esc(tex)}">${esc(tex)}</div></div>`).join("")}
+    ${f.map(([cap, tex]) => `<div class="fitem"><div class="cap tex">${esc(cap)}</div>${fhtml(tex)}</div>`).join("")}
   </div></div></details>`;
 }
 // Рисуем формулы KaTeX; если библиотека не загрузилась (нет интернета), остаётся исходный текст
@@ -379,7 +403,7 @@ function viewTopic(id){
     <button class="btn" data-act="exam-topic" data-t="${t.id}">Тест по теме</button>
     ${THSEC && TH.some(x => x.topic === t.id) ? `<a class="btn" href="#/theory/t${t.id}">Теория по теме</a>` : ""}
   </div>
-  ${formulasBlock(t.id) ? `<h2>Основные формулы</h2>${formulasBlock(t.id)}` : ""}
+  ${formulasBlock(t.id)}
   <h2>Шаблоны решений</h2>
   <p class="hint">Сначала прочитай шаблоны. Дальше вопросы решаются по ним.</p>
   ${tpls.map(x => tplBlock(x, true)).join("")}
@@ -546,6 +570,7 @@ function render(){
   tabs(route);
   $("#app").innerHTML = html;
   typeset();
+  markWide(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(markWide);
   if (route === "theory" || route === "cheat"){   // #/theory/<раздел или tN>, #/cheat/<шаблон или fN>: прокрутить к нужному месту
     const el = document.getElementById((route === "theory" ? "th-" : "ch-") + (h.split("/")[2] || ""));
     if (el){ if (el.tagName === "DETAILS") el.open = true; el.scrollIntoView(); return; }

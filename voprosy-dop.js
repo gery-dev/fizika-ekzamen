@@ -89,7 +89,7 @@ window.EXTRA = {
       stem: "Полная энергия частицы равна двум энергиям покоя. Отношение скорости частицы к скорости света равно:",
       options: ["0,87", "1", "0,75", "0,5"], answer: [1],
       solution: String.raw`1. $E = \gamma m_0c^2 = 2m_0c^2$, значит $\gamma = 2$.
-2. $$\gamma = \frac{1}{\sqrt{1 - \beta^2}} = 2 \;\Rightarrow\; 1 - \beta^2 = \frac14 \;\Rightarrow\; \beta = \frac{\sqrt3}{2} \approx 0{,}87$$
+2. $$\begin{aligned} \gamma = \frac{1}{\sqrt{1 - \beta^2}} = 2 &\;\Rightarrow\; 1 - \beta^2 = \frac14 \\ &\;\Rightarrow\; \beta = \frac{\sqrt3}{2} \approx 0{,}87 \end{aligned}$$
 Ответ: 0,87`,
       tpl: ["L3"] },
     { id: 131, topic: 8, title: "Траектория: x = 0,8 cos ωt, y = 0,5 sin(ωt + π)",
@@ -268,7 +268,7 @@ window.EXTRA = {
       options: ["3 м/с²", "2,5 м/с²", "3,5 м/с²", "2 м/с²", "1,5 м/с²"], answer: [2],
       solution: String.raw`1. Движение начинается из покоя, скорость растёт равномерно: $v = a_\tau t = 2\cdot 0{,}75 = 1{,}5$ м/с.
 2. Нормальное ускорение: $a_n = \dfrac{v^2}{R} = \dfrac{1{,}5^2}{1{,}5} = 1{,}5$ м/с².
-3. Полное ускорение: $$a = \sqrt{a_\tau^2 + a_n^2} = \sqrt{4 + 2{,}25} = \sqrt{6{,}25} = 2{,}5\ \text{м/с}^2$$
+3. Полное ускорение: $$\begin{aligned} a &= \sqrt{a_\tau^2 + a_n^2} \\ &= \sqrt{4 + 2{,}25} = \sqrt{6{,}25} = 2{,}5\ \text{м/с}^2 \end{aligned}$$
 Ответ: 2,5 м/с²`,
       tpl: ["K2", "K6"], th: ["k-circle"] },
     { id: 154, topic: 6, title: "Под действием какой силы возникают гармонические колебания",
@@ -369,7 +369,7 @@ window.EXTRA = {
       stem: String.raw`Под действием силы $\vec F = 3\vec i - 2\vec j$ частица переместилась из точки $(1;\,2)$ м в точку $(1;\,3)$ м. Работа силы равна:`,
       options: ["−6 Дж", "0 Дж", "−2 Дж"], answer: [3],
       solution: String.raw`1. Перемещение: $\Delta x = 1 - 1 = 0$, $\Delta y = 3 - 2 = 1$ м.
-2. Работа: $$A = F_x\Delta x + F_y\Delta y = 3\cdot 0 + (-2)\cdot 1 = -2\ \text{Дж}$$
+2. Работа: $$\begin{aligned} A &= F_x\Delta x + F_y\Delta y \\ &= 3\cdot 0 + (-2)\cdot 1 = -2\ \text{Дж} \end{aligned}$$
 Ответ: −2 Дж. Проекция $F_x$ работы не даёт, потому что перемещения вдоль оси $x$ нет.`,
       tpl: ["E1"], th: ["e-work"] },
     { id: 167, topic: 11, title: "Сближение двух кораблей: V = 0,8c и U = 0,5c",
@@ -423,7 +423,7 @@ window.EXTRA = {
       rule: String.raw`Число при $x$ в $\cos(\omega t - kx)$ — волновое число $k$, а не длина волны. При $k = 6{,}28$ рад/м: $\lambda = 1$ м.`,
       qids: [] },
     { id: "Dp3", topic: 10, title: "Длина волны при движении источника",
-      formulas: [String.raw`\lambda' = (v - v_{\text{ист}})\,T_0\quad \text{(сближение)}`, String.raw`\lambda' = (v + v_{\text{ист}})\,T_0\quad \text{(удаление)}`],
+      formulas: [String.raw`~При сближении: $\lambda' = (v - v_{\text{ист}})\,T_0$.`, String.raw`~При удалении: $\lambda' = (v + v_{\text{ист}})\,T_0$.`],
       rule: String.raw`Источник удаляется — длина волны увеличивается, частота уменьшается. Источник приближается — длина волны уменьшается.`,
       qids: [] },
     { id: "L5", topic: 11, title: "Инварианты преобразований Лоренца",

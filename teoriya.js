@@ -3,6 +3,8 @@
 // body (текст; формулы $...$ и $$...$$; **жирный**; строки «• » — список), qids — номера вопросов, которые на него опираются.
 // Новый вопрос можно привязать к разделу и из voprosy-dop.js: поле th: ["id-раздела"].
 // Внутри String.raw нельзя использовать обратные кавычки и сочетание «${».
+// Правила для формул: внутри \text{...} только буквы и цифры (знаки «·», «−», «×» там ломают формулу: пишите \cdot, - и \times вне \text);
+// длинные формулы делите на отдельные ($$...$$ или через \qquad: сайт сам разнесёт части по строкам) или используйте \begin{aligned}...\\...\end{aligned}.
 
 const THEORY = [
 { topic: 1, sections: [
@@ -348,9 +350,11 @@ const FORMULAS = {
   ["Сила тяжести", String.raw`F = mg`],
   ["Сила упругости (закон Гука)", String.raw`F = -kx`],
   ["Сила трения скольжения", String.raw`F_{\text{тр}} = \mu N`],
-  ["Всемирное тяготение", String.raw`F = G\,\frac{m_1m_2}{r^2},\qquad G = 6{,}67\cdot 10^{-11}\ \text{Н·м}^2/\text{кг}^2`],
+  ["Всемирное тяготение", String.raw`F = G\,\frac{m_1m_2}{r^2}`],
+  ["Гравитационная постоянная", String.raw`G = 6{,}67\cdot 10^{-11}\ \frac{\text{Н}\cdot\text{м}^2}{\text{кг}^2}`],
   ["Центростремительная сила", String.raw`F = m\,\frac{v^2}{R} = m\omega^2R`],
-  ["Вес тела", String.raw`P = m(g - a)\ \text{(ускорение вниз)},\qquad P = m(g + a)\ \text{(ускорение вверх)}`],
+  ["Вес тела при ускорении вниз", String.raw`P = m(g - a)`],
+  ["Вес тела при ускорении вверх", String.raw`P = m(g + a)`],
 ],
 3: [
   ["Работа постоянной силы", String.raw`A = \vec F\cdot\vec s = Fs\cos\alpha = F_x\Delta x + F_y\Delta y`],
@@ -362,7 +366,7 @@ const FORMULAS = {
   ["Потенциальная энергия тяготения", String.raw`E_p = -G\,\frac{Mm}{r}`],
   ["Теорема о кинетической энергии", String.raw`A_{\text{всех сил}} = E_{k2} - E_{k1}`],
   ["Работа консервативных сил", String.raw`A = -\Delta E_p = E_{p1} - E_{p2}`],
-  ["Закон сохранения энергии", String.raw`E = E_k + E_p = \text{const}\quad (\text{только консервативные силы})`],
+  ["Закон сохранения энергии (только консервативные силы)", String.raw`E = E_k + E_p = \text{const}`],
   ["Сила через потенциальную энергию", String.raw`F_x = -\frac{\partial E_p}{\partial x},\qquad F_y = -\frac{\partial E_p}{\partial y}`],
 ],
 4: [
@@ -373,7 +377,8 @@ const FORMULAS = {
   ["Движение центра масс", String.raw`M\vec a_c = \vec F_{\text{внеш}}`],
   ["Абсолютно неупругий удар", String.raw`m_1\vec v_1 + m_2\vec v_2 = (m_1 + m_2)\vec v'`],
   ["Потеря энергии при неупругом ударе", String.raw`\Delta E = \frac{m_1m_2}{2(m_1 + m_2)}(v_1 - v_2)^2`],
-  ["Абсолютно упругий удар (по одной прямой)", String.raw`v_1' = \frac{(m_1 - m_2)v_1 + 2m_2v_2}{m_1 + m_2},\quad v_2' = \frac{(m_2 - m_1)v_2 + 2m_1v_1}{m_1 + m_2}`],
+  ["Абсолютно упругий удар (по одной прямой): скорость первого тела", String.raw`v_1' = \frac{(m_1 - m_2)v_1 + 2m_2v_2}{m_1 + m_2}`],
+  ["Абсолютно упругий удар: скорость второго тела", String.raw`v_2' = \frac{(m_2 - m_1)v_2 + 2m_1v_1}{m_1 + m_2}`],
 ],
 5: [
   ["Момент инерции", String.raw`I = \sum m_ir_i^2`],
@@ -395,7 +400,8 @@ const FORMULAS = {
   ["Закон колебаний", String.raw`x = A\cos(\omega t + \varphi)`],
   ["Уравнение гармонических колебаний", String.raw`\ddot x + \omega^2x = 0`],
   ["Период, частота, циклическая частота", String.raw`T = \frac{2\pi}{\omega} = \frac{1}{\nu},\qquad \omega = 2\pi\nu`],
-  ["Скорость и ускорение", String.raw`v = -A\omega\sin(\omega t + \varphi),\qquad a = -A\omega^2\cos(\omega t + \varphi) = -\omega^2x`],
+  ["Скорость", String.raw`v = -A\omega\sin(\omega t + \varphi)`],
+  ["Ускорение", String.raw`a = -A\omega^2\cos(\omega t + \varphi) = -\omega^2x`],
   ["Максимальные значения", String.raw`v_{\max} = A\omega,\qquad a_{\max} = A\omega^2,\qquad F_{\max} = kA`],
   ["Пружинный маятник", String.raw`\omega = \sqrt{\frac{k}{m}},\qquad T = 2\pi\sqrt{\frac{m}{k}}`],
   ["Математический маятник", String.raw`T = 2\pi\sqrt{\frac{l}{g}}`],
@@ -433,19 +439,21 @@ const FORMULAS = {
   ["Интенсивность волны", String.raw`I \sim A^2,\qquad I = \frac{1}{2}\,\rho\, v\,\omega^2A^2`],
 ],
 10: [
-  ["Источник движется, приёмник неподвижен", String.raw`\nu = \nu_0\,\frac{v}{v \mp v_{\text{ист}}}\quad (\text{«−» сближение, «+» удаление})`],
-  ["Приёмник движется, источник неподвижен", String.raw`\nu = \nu_0\,\frac{v \pm v_{\text{пр}}}{v}\quad (\text{«+» сближение, «−» удаление})`],
+  ["Источник движется, приёмник неподвижен (в знаменателе «−» при сближении, «+» при удалении)", String.raw`\nu = \nu_0\,\frac{v}{v \mp v_{\text{ист}}}`],
+  ["Приёмник движется, источник неподвижен («+» при сближении, «−» при удалении)", String.raw`\nu = \nu_0\,\frac{v \pm v_{\text{пр}}}{v}`],
   ["Общий случай", String.raw`\nu = \nu_0\,\frac{v \pm v_{\text{пр}}}{v \mp v_{\text{ист}}}`],
   ["Длина волны при движении источника", String.raw`\lambda' = (v \mp v_{\text{ист}})\,T_0`],
   ["Качественно", String.raw`\text{сближение: } \nu\uparrow,\ \lambda\downarrow;\qquad \text{удаление: } \nu\downarrow,\ \lambda\uparrow`],
 ],
 11: [
-  ["Преобразования Галилея", String.raw`x' = x - Vt,\quad t' = t,\quad v' = v - V,\quad a' = a`],
+  ["Преобразования Галилея", String.raw`x' = x - Vt,\ \ t' = t\qquad v' = v - V,\ \ a' = a`],
   ["Лоренц-фактор", String.raw`\beta = \frac{v}{c},\qquad \gamma = \frac{1}{\sqrt{1 - \beta^2}}`],
-  ["Преобразования Лоренца", String.raw`x' = \frac{x - Vt}{\sqrt{1 - V^2/c^2}},\qquad t' = \frac{t - Vx/c^2}{\sqrt{1 - V^2/c^2}}`],
+  ["Преобразования Лоренца: координата", String.raw`x' = \frac{x - Vt}{\sqrt{1 - V^2/c^2}}`],
+  ["Преобразования Лоренца: время", String.raw`t' = \frac{t - Vx/c^2}{\sqrt{1 - V^2/c^2}}`],
   ["Сокращение длины", String.raw`l = l_0\sqrt{1 - \beta^2}`],
   ["Замедление времени", String.raw`\Delta t = \frac{\Delta t_0}{\sqrt{1 - \beta^2}} = \gamma\,\Delta t_0`],
-  ["Сложение скоростей", String.raw`u' = \frac{u - V}{1 - uV/c^2},\qquad \text{навстречу: } \frac{u + v}{1 + uv/c^2}`],
+  ["Сложение скоростей", String.raw`u' = \frac{u - V}{1 - uV/c^2}`],
+  ["Сложение скоростей (навстречу друг другу)", String.raw`u' = \frac{u + v}{1 + uv/c^2}`],
   ["Масса и импульс", String.raw`m = \gamma m_0,\qquad p = \gamma m_0v`],
   ["Энергия", String.raw`E = mc^2 = \gamma m_0c^2,\qquad E_0 = m_0c^2`],
   ["Кинетическая энергия", String.raw`E_k = E - E_0 = (\gamma - 1)\,m_0c^2`],
