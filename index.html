@@ -277,7 +277,7 @@ function tplBlock(t, open){
   return `<details class="tpl" id="ch-${t.id}" ${open?"open":""}><summary class="tex">${esc(t.title)}</summary><div class="in">
     ${t.formulas.map(fhtml).join("")}
     <p class="rule tex">${esc(t.rule)}</p>
-    <div class="qs">Вопросы: ${t.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div></div></details>`;
+    ${t.qids.length ? `<div class="qs">Вопросы: ${t.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div>` : ""}</div></details>`;
 }
 // Текст теории: экранируем, **жирный** превращаем в <b>; формулы $...$ дорисует typeset()
 function rich(s){ return esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>"); }
