@@ -212,7 +212,19 @@ if (!S.st || typeof S.st !== "object") S.st = {};
 if (!S.plan || typeof S.plan !== "object") S.plan = {};
 S.v = SCHEMA;   // сюда добавлять миграции, если формат прогресса изменится
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+// Перед записью подтягиваем то, что успела сохранить другая вкладка: берём более свежую запись по каждому вопросу,
+// иначе вкладка со старой копией затёрла бы чужие ответы.
+function mergeStored(){
+  const raw = localStorage.getItem(KEY); if (!raw) return;
+  const o = JSON.parse(raw); if (!o || typeof o !== "object") return;
+  if (o.st && typeof o.st === "object") for (const id in o.st){
+    const a = o.st[id], b = S.st[id];
+    if (a && typeof a === "object" && (!b || (a.last|0) > (b.last|0))) S.st[id] = {streak:a.streak|0, seen:a.seen|0, ok:a.ok|0, bad:a.bad|0, last:a.last||0};
+  }
+  if (o.plan && typeof o.plan === "object") for (const k in o.plan) if (!(k in S.plan)) S.plan[k] = o.plan[k];
+}
+function save(){ try { try { mergeStored(); } catch(e){} localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+window.addEventListener("storage", e => { if (e.key === KEY) { try { mergeStored(); } catch(err){} } });
 function exportProgress(){
   const blob = new Blob([JSON.stringify({app:"fizika-ekzamen", v:SCHEMA, saved:new Date().toISOString(), st:S.st, plan:S.plan})], {type:"application/json"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
