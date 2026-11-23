@@ -305,7 +305,9 @@ function viewTheory(){
     ${formulasBlock(t.topic)}
     ${t.sections.map(s => `<details class="tpl" id="th-${s.id}" open><summary class="tex">${esc(s.title)}</summary><div class="in">
       <div class="thbody tex">${rich(s.body)}</div>
-      <div class="qs">Вопросы: ${s.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div></div></details>`).join("")}`).join("")}`;
+      <div class="qs">Вопросы: ${s.qids.map(id => `<a href="#" data-act="open-one" data-id="${id}">№${id}</a>`).join(", ")}</div>
+      ${s.qids.length ? `<div class="row" style="margin-top:8px"><button class="btn small primary" data-act="learn-sec" data-s="${s.id}">Решать вопросы раздела · ${s.qids.length}</button>
+      <button class="btn small" data-act="exam-sec" data-s="${s.id}">Тест по разделу</button></div>` : ""}</div></details>`).join("")}`).join("")}`;
 }
 // Длинная формула, которая не помещается в колонку, занимает всю ширину блока
 function markWide(){
@@ -338,7 +340,8 @@ function typeset(){
 /* ---------- сессия прохождения ---------- */
 let R = null; // {ids,i,mode,title,picks:{},checked:{}, back}
 function startRun(ids, mode, title, startAt, back){
-  R = {ids, i:startAt||0, mode, title, picks:{}, checked:{}, back: back||"#/"};
+  // Во всех режимах (учёба, тест, раздел) ответ показывается сразу после выбора; mode оставлен для совместимости вызовов
+  R = {ids, i:startAt||0, mode:"learn", title, picks:{}, checked:{}, back: back||"#/"};
   location.hash = "#/run";
   render();
 }
@@ -376,7 +379,7 @@ function viewHome(){
       <button class="btn" data-act="weak" ${weakN?"":"disabled"}>Только ошибки · ${weakN}</button>
     </div>
     <div class="row" style="margin-top:12px">
-      <span class="muted">Пробный тест без подсказок:</span>
+      <span class="muted">Пробный тест (случайные вопросы):</span>
       <button class="btn small" data-act="exam" data-n="15">15</button>
       <button class="btn small" data-act="exam" data-n="30">30</button>
       <button class="btn small" data-act="exam" data-n="60">60</button>
@@ -436,7 +439,7 @@ const PLAN = [
   ["sat","Суббота","Темы 6–8, 39 вопросов",[[6,"Гармонические колебания"],[7,"Затухающие и вынужденные колебания"],[8,"Сложение колебаний и траектории"]],
    "Утром 10 минут «Только ошибки» со вчерашнего дня. Потом новые темы так же, как в пятницу."],
   ["sun","Воскресенье","Темы 9–11, 38 вопросов, потом пробный тест",[[9,"Волны"],[10,"Эффект Доплера"],[11,"Преобразования Галилея и СТО"]],
-   "Вечером пробный тест на 60 вопросов без подсказок и разбор всех ошибок."],
+   "Вечером пробный тест на 60 вопросов и разбор всех ошибок."],
   ["mon","Понедельник, утро","Только повторение, 30 минут",[],
    "«Только ошибки», затем шпаргалка. Новое не учить: цель — не растерять выученное."]
 ];
@@ -465,7 +468,6 @@ function viewRun(){
     const inner = isText ? `<b>${lab(q,i)}</b><span class="tex">${esc(q.options[i])}</span>` : lab(q,i);
     optsHtml += `<button class="${cls}" data-act="pick" data-p="${p}" ${checked?"disabled":""}>${inner}</button>`;
   }
-  const examDirect = mode === "exam";
   let after = "", verdictHtml = "";
   if (checked){
     const ok = checked === "ok";
@@ -483,11 +485,9 @@ function viewRun(){
   const last = R.i === R.ids.length-1;
   let btns = "";
   if (!checked){
-    const label = examDirect ? (last ? "Завершить тест" : "Дальше →") : "Проверить";
     const dis = pick.length === 0 ? "disabled" : "";
-    // в обучающем режиме одиночный выбор проверяется сразу, кнопка нужна только для нескольких ответов
-    if (examDirect || need > 1) btns = `<button class="btn primary" data-act="${examDirect?"next":"check"}" ${dis}>${label}</button>`;
-    if (examDirect) btns = `<button class="btn primary" data-act="next" ${dis}>${label}</button>`;
+    // одиночный выбор проверяется сразу, кнопка «Проверить» нужна только для нескольких ответов
+    if (need > 1) btns = `<button class="btn primary" data-act="check" ${dis}>Проверить</button>`;
   } else {
     btns = `<button class="btn primary" data-act="next">${last ? "Завершить" : "Дальше →"}</button>`;
   }
@@ -495,7 +495,7 @@ function viewRun(){
   <div class="runhead">
     <div class="row"><span class="pill">${esc(R.title)}</span><span class="pill">Вопрос ${R.i+1} из ${R.ids.length}</span><span class="pill">№${q.id} · тема ${q.topic}</span></div>
     <div class="row">
-      ${R.i>0 && examDirect ? `<button class="btn small" data-act="prev">← Назад</button>`:""}
+      ${R.i>0 ? `<button class="btn small" data-act="prev">← Назад</button>`:""}
       <button class="btn small" data-act="quit">Выйти</button>
     </div>
   </div>
@@ -536,19 +536,8 @@ function doCheck(){
   record(id, ok);
   render();
 }
-function finishExam(){
-  const ok = [], bad = [];
-  R.ids.forEach(id => { const q = byId[id], pick = R.picks[id] || [];
-    const good = evalQ(q, pick); record(id, good); (good ? ok : bad).push(id); });
-  LASTRES = {ids:R.ids, ok, bad, title:R.title};
-  R = null; location.hash = "#/result"; render();
-}
 function next(){
-  if (R.mode === "exam"){
-    const id = R.ids[R.i]; if (!(R.picks[id]||[]).length) return;
-    if (R.i === R.ids.length-1) return finishExam();
-    R.i++; render(); return;
-  }
+  if (!R.checked[R.ids[R.i]]) return;
   if (R.i === R.ids.length-1){
     const bad = R.ids.filter(id => R.checked[id]==="bad"), ok = R.ids.filter(id => R.checked[id]==="ok");
     LASTRES = {ids:R.ids, ok, bad, title:R.title}; R = null; location.hash = "#/result"; render(); return;
@@ -564,7 +553,7 @@ function pickOpt(p){
     R.picks[id] = cur; render();
   } else {
     R.picks[id] = [p];
-    if (R.mode === "learn") doCheck(); else render();
+    doCheck();
   }
 }
 
@@ -606,13 +595,15 @@ document.addEventListener("click", e => {
   else if (act === "learn-topic"){ const t = topById[+a.dataset.t]; startRun(t.qids.slice(), "learn", "Тема "+t.id, 0); }
   else if (act === "exam-topic"){ const t = topById[+a.dataset.t]; startRun(shuffle(t.qids), "exam", "Тест: тема "+t.id); }
   else if (act === "open-q"){ const t = topById[+a.dataset.t]; startRun(t.qids.slice(), "learn", "Тема "+t.id, +a.dataset.i); }
+  else if (act === "learn-sec"){ const sec = THSEC[a.dataset.s]; if (sec) startRun(sec.qids.filter(id => byId[id]), "learn", "Раздел: " + sec.title, 0, "#/theory/" + sec.id); }
+  else if (act === "exam-sec"){ const sec = THSEC[a.dataset.s]; if (sec) startRun(shuffle(sec.qids.filter(id => byId[id])), "exam", "Тест: " + sec.title, 0, "#/theory/" + sec.id); }
   else if (act === "open-one"){ startRun([+a.dataset.id], "learn", "Разбор"); }
   else if (act === "review"){ startRun(LASTRES.bad.slice(), "learn", "Разбор ошибок"); }
   else if (act === "pick") pickOpt(+a.dataset.p);
   else if (act === "check") doCheck();
   else if (act === "next") next();
   else if (act === "prev"){ if (R.i>0){ R.i--; render(); } }
-  else if (act === "quit"){ R = null; location.hash = "#/"; render(); }
+  else if (act === "quit"){ const to = R && R.back || "#/"; R = null; location.hash = to; render(); }
   else if (act === "print") window.print();
   else if (act === "export") exportProgress();
   else if (act === "import"){ const f = $("#impfile"); if (f) f.click(); }
@@ -633,8 +624,9 @@ document.addEventListener("keydown", e => {
   if (/^[1-8]$/.test(e.key)) idx = +e.key - 1;
   else if (!q.num && /^[a-hA-H]$/.test(e.key)) idx = LET.indexOf(e.key.toLowerCase());
   if (idx >= 0 && idx < q.n){ pickOpt(idx+1); return; }
+  if (e.key === "ArrowLeft" && R.i > 0){ R.i--; render(); return; }
   if (e.key === "Enter" || e.key === "ArrowRight"){
-    if (R.checked[id] || R.mode === "exam") next(); else if (q.ans.length > 1) doCheck();
+    if (R.checked[id]) next(); else if (q.ans.length > 1) doCheck();
   }
 });
 render();
